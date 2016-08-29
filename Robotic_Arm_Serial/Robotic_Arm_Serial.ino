@@ -1,3 +1,4 @@
+
 /*
   Autor: Davi Cedraz
 
@@ -13,36 +14,32 @@
 
   INSTRUÇÕES
 
-  A - (0 - 180 GRAUS) : MOVIMENTA A GARRA
+  A - (0 - 180  GRAUS) : MOVIMENTA A GARRA
   B - (0 - 180 GRAUS) : MOVIMENTA A BASE
   C - (0 - 180 GRAUS) : MOVIMENTA O EIXO CENTRAL
   D - (0 - 180 GRAUS) : MOVIMENTA O EIXO LATERAL
 
-  1 - PARA ABRIR/SUBIR
-  0 - PARA FECHAR/DESCER
-
+  Exemplo de entrada: A45
+  *Servo A(Garra) irá parao a angulacao 45*
+  
 */
 
 // Bibliotecas auxiliares padrão
 #include <Servo.h>
 
-
 // Definição de constantes
-#define servoGarra       10
-#define servoBase        9
-#define servoCentral     8
-#define servoLateral     7
+#define servoGarra       10 // Servo 1 no protótipo
+#define servoBase        9 // Servo 4 no protótipo
+#define servoCentral     8 // Servo 2 no protótipo 
+#define servoLateral     7 // Servo 3 no protótipo
 
 
 // Funções para movimento suave
 void splitString(char* data);
 void setPosition(char* data);
-boolean comand(boolean*key);
 
 // Variáveis
 char buffer[18]; //vetor para armazenar string de texto
-
-boolean key = false; //variavel para guardar a orientação do movimento p/ angulo
 
 // Atribuição de objetos (servos do braço)
 Servo servo_base;
@@ -69,15 +66,13 @@ void setup() {
   servo_lateral.attach(7);
 
 
-  servo_garra.write(90);           // seta um posicionamento inicial para teste do braço
-  servo_base.write(90);
-  servo_central.write(100);
-  servo_lateral.write(110);
+//  servo_garra.write(135);           // seta um posicionamento inicial para teste do braço
+//  servo_base.write(90);
+//  servo_central.write(100);
+//  servo_lateral.write(110);
 
   delay(10000);
-
 }
-
 
 void loop() {
 
@@ -95,24 +90,13 @@ void loop() {
     while (numChar--) { //executa até que numChar seja zero
 
       buffer[index++] = Serial.read(); //le a serial e armazena no vetor
-      key.Serial.read(); // le a orientação do movimento
     }
     splitString(buffer); //chama a função splitString com buffer como parametro
-    comand(key);         //chama a função com a orientação do moivmento como parametro
   }
-
 
 }
 
-boolean comand(boolean* key) {
-  if (key == true) {
-    return true;
-  }
-  else {
-    return false;
-  }
-}
-
+// Funções de Movimento de cada Servo
 
 void splitString(char* data) {
   Serial.println(" ");
@@ -144,144 +128,132 @@ void splitString(char* data) {
 // Funções de Movimento de cada Servo
 
 void setPosition(char* data) {
-  if ((data[0] == 'a') || (data[0] == 'A')) { //verifica letra inicial (qual servo)
+  if ((data[0] == 'a') || (data[0] == 'A')) { //verifica letra inicial (qual servo irá receber os comandos de movimento)
+   
+    int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto 
+    Ans = constrain(Ans, 100, 135); //garante que Ans esteja entre 0 e 45 
 
-    if (comand(key) == true) { //verifica a orientação do movimento (abre/fecha, sobe/desce)
+    int Ans2 = 0;
+    
+    if(Ans < Ans2){          //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
+      
+      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto 
+      Ans = constrain(Ans, 100, 135); //garante que Ans esteja entre 0 e 45 
 
-      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto
-
-      Ans = constrain(Ans, 0, 180); //garante que Ans esteja entre 0 e 180
-
+      for (int i = 0; Ans2 >= Ans; i--) {
+        servo_garra.write(i); //atribui o grau da posição do eixo do servo
+        delay(10);
+      }
+      
+      Serial.print("A Garra esta na angulacao: ");
+      Serial.println(Ans);  
+    }
+    
       for (int i = 0; i < Ans; i++) {
         servo_garra.write(i); //atribui o grau da posição do eixo do servo
         delay(10);
       }
 
-      Serial.print("A Garra está na angulação: ");
+      Ans2 = Ans;
+      
+      Serial.print("A Garra esta na angulacao: ");
       Serial.println(Ans);
-
-    }
-    else {
-
-      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto
-
-      Ans = constrain(Ans, 0, 180); //garante que Ans esteja entre 0 e 180
-
-      for (int i = 0; i > Ans; i--) {
-        servo_garra.write(i); //atribui o grau da posição do eixo do servo
-        delay(10);
       }
 
-      Serial.print("A Garra está na angulação: ");
-      Serial.println(Ans);
+  if ((data[0] == 'b') || (data[0] == 'B')) { //verifica letra inicial (qual servo irá receber os comandos de movimento)
+   
+    int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto 
+    Ans = constrain(Ans, 45, 150); //garante que Ans esteja entre 0 e 45 
 
+    int Ans2 = 0;
+    
+    if(Ans < Ans2){     //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
+      
+      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto 
+      Ans = constrain(Ans, 45, 150); //garante que Ans esteja entre 0 e 45 
+
+      for (int i = 0; Ans2 >= Ans; i--) {
+        servo_base.write(i); //atribui o grau da posição do eixo do servo
+        delay(10);
+      }
+      
+      Serial.print("A Base esta na angulacao: ");
+      Serial.println(Ans);  
     }
-
-  }
-
-  if ((data[0] == 'b') || (data[0] == 'B')) {
-
-    if (comand(key) == true) { //verifica a orientação do movimento (abre/fecha, sobe/desce)
-
-      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto
-
-      Ans = constrain(Ans, 0, 180); //garante que Ans esteja entre 0 e 180
-
+    
       for (int i = 0; i < Ans; i++) {
         servo_base.write(i); //atribui o grau da posição do eixo do servo
         delay(10);
       }
 
-      Serial.print("O servo da Base está na angulação: ");
+      Ans2 = Ans;
+      
+      Serial.print("A Base esta na angulacao: ");
       Serial.println(Ans);
-
-    }
-    else {
-
-      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto
-
-      Ans = constrain(Ans, 0, 180); //garante que Ans esteja entre 0 e 180
-
-      for (int i = 0; i > Ans; i--) {
-        servo_base.write(i); //atribui o grau da posição do eixo do servo
-        delay(10);
       }
 
-      Serial.print("O servo da Base está na angulação: ");
-      Serial.println(Ans);
+  if ((data[0] == 'c') || (data[0] == 'C')) { //verifica letra inicial (qual servo irá receber os comandos de movimento)
+   
+    int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto 
+    Ans = constrain(Ans, 80, 100); //garante que Ans esteja entre 0 e 45 
 
+    int Ans2 = 0;
+    
+    if(Ans < Ans2){     //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
+      
+      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto 
+      Ans = constrain(Ans, 80, 100); //garante que Ans esteja entre 0 e 45 
+
+      for (int i = 0; Ans2 >= Ans; i--) {
+        servo_central.write(i); //atribui o grau da posição do eixo do servo
+        delay(10);
+      }
+      
+      Serial.print("O Servo central esta na angulacao: ");
+      Serial.println(Ans);  
     }
-
-  }
-
-  if ((data[0] == 'c') || (data[0] == 'C')) {
-
-    if (comand(key) == true) { //verifica a orientação do movimento (abre/fecha, sobe/desce)
-
-      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto
-
-      Ans = constrain(Ans, 0, 180); //garante que Ans esteja entre 0 e 180
-
+    
       for (int i = 0; i < Ans; i++) {
         servo_central.write(i); //atribui o grau da posição do eixo do servo
         delay(10);
       }
 
-      Serial.print("O servo Central está na angulação: ");
+      Ans2 = Ans;
+      
+      Serial.print("O Servo central esta na angulacao: ");
       Serial.println(Ans);
-
-    }
-    else {
-
-      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto
-
-      Ans = constrain(Ans, 0, 180); //garante que Ans esteja entre 0 e 180
-
-      for (int i = 0; i > Ans; i--) {
-        servo_central.write(i); //atribui o grau da posição do eixo do servo
-        delay(10);
       }
 
-      Serial.print("O servo Central está na angulação: ");
-      Serial.println(Ans);
+  if ((data[0] == 'd') || (data[0] == 'D')) { //verifica letra inicial (qual servo irá receber os comandos de movimento)
+   
+    int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto 
+    Ans = constrain(Ans, 80, 100); //garante que Ans esteja entre 0 e 45 
 
+    int Ans2 = 0;
+    
+    if(Ans < Ans2){     //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
+      
+      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto 
+      Ans = constrain(Ans, 80, 100); //garante que Ans esteja entre 0 e 45 
+
+      for (int i = 0; Ans2 >= Ans; i--) {
+        servo_lateral.write(i); //atribui o grau da posição do eixo do servo
+        delay(10);
+      }
+      
+      Serial.print("O Servo lateral esta na angulacao: ");
+      Serial.println(Ans);  
     }
-
-  }
-
-  if ((data[0] == 'd') || (data[0] == 'D')) {
-
-    if (comand(key) == true) { //verifica a orientação do movimento (abre/fecha, sobe/desce)
-
-      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto
-
-      Ans = constrain(Ans, 0, 180); //garante que Ans esteja entre 0 e 180
-
+    
       for (int i = 0; i < Ans; i++) {
         servo_lateral.write(i); //atribui o grau da posição do eixo do servo
         delay(10);
       }
 
-      Serial.print("O servo Lateral está na angulação: ");
+      Ans2 = Ans;
+      
+      Serial.print("O Servo lateral esta na angulacao: ");
       Serial.println(Ans);
-
-    }
-    else {
-
-      int Ans = strtol(data + 1, NULL, 10);   //define Ans como numero na proxima parte do texto
-
-      Ans = constrain(Ans, 0, 180); //garante que Ans esteja entre 0 e 180
-
-      for (int i = 0; i > Ans; i--) {
-        servo_lateral.write(i); //atribui o grau da posição do eixo do servo
-        delay(10);
       }
 
-      Serial.print("O servo Lateral está na angulação: ");
-      Serial.println(Ans);
-
-    }
-
   }
-
-}
