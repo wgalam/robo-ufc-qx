@@ -60,10 +60,10 @@ void setup() {
   servo_central.attach(8);
   servo_lateral.attach(7);
 
-  //  servo_garra.write(135);           // seta um posicionamento inicial para teste do braço
-  //  servo_base.write(90);
-  //  servo_central.write(100);
-  //  servo_lateral.write(110);
+ servo_garra.write(70);           // seta um posicionamento inicial para teste do braço
+ servo_base.write(97);
+ servo_central.write(150);
+ servo_lateral.write(30);
 
   delay(10000);
 }
@@ -125,14 +125,14 @@ void setPosition(char* data) {
     if ((data[1] == 'a') || (data[1] == 'A')) { //verifica letra inicial (qual servo irá receber os comandos de movimento)
 
       int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-      Ans = constrain(Ans, 100, 135); //garante que Ans esteja entre 0 e 45
+      Ans = constrain(Ans, 70, 105); //garante que Ans esteja entre 0 e 45
 
       int Ans2 = 0;
 
       if (Ans < Ans2) {        //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
 
         int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-        Ans = constrain(Ans, 100, 135); //garante que Ans esteja entre 0 e 45
+        Ans = constrain(Ans, 70, 105); //garante que Ans esteja entre 0 e 45
 
         for (int i = 0; Ans2 >= Ans; i--) {
           servo_garra.write(i); //atribui o grau da posição do eixo do servo
@@ -189,14 +189,14 @@ void setPosition(char* data) {
     if ((data[1] == 'c') || (data[1] == 'C')) { //verifica letra inicial (qual servo irá receber os comandos de movimento)
 
       int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-      Ans = constrain(Ans, 80, 100); //garante que Ans esteja entre 0 e 45
+      Ans = constrain(Ans, 30, 160); //garante que Ans esteja entre 0 e 45
 
       int Ans2 = 0;
 
       if (Ans < Ans2) {   //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
 
         int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-        Ans = constrain(Ans, 80, 100); //garante que Ans esteja entre 0 e 45
+        Ans = constrain(Ans, 30, 160); //garante que Ans esteja entre 0 e 45
 
         for (int i = 0; Ans2 >= Ans; i--) {
           servo_central.write(i); //atribui o grau da posição do eixo do servo
@@ -221,14 +221,14 @@ void setPosition(char* data) {
     if ((data[1] == 'd') || (data[1] == 'D')) { //verifica letra inicial (qual servo irá receber os comandos de movimento)
 
       int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-      Ans = constrain(Ans, 60, 100); //garante que Ans esteja entre 0 e 45
+      Ans = constrain(Ans, 30, 160); //garante que Ans esteja entre 0 e 45
 
       int Ans2 = 0;
 
       if (Ans < Ans2) {   //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
 
         int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-        Ans = constrain(Ans, 60, 100); //garante que Ans esteja entre 0 e 45
+        Ans = constrain(Ans, 30, 160); //garante que Ans esteja entre 0 e 45
 
         for (int i = 0; Ans2 >= Ans; i--) {
           servo_lateral.write(i); //atribui o grau da posição do eixo do servo
