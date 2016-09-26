@@ -9,7 +9,7 @@
 
   ############################################
 
-  Controle dos servos via Monitor Serial
+  Controle dos servos via Monitor Serial e comunicação Android
 
   INSTRUÇÕES
 
@@ -26,26 +26,35 @@
 // Definição de constantes
 #define servoGarra       10 // Servo 1 no protótipo
 #define servoBase        9 // Servo 4 no protótipo
-#define servoCentral     8 // Servo 2 no protótipo 
+#define servoCentral     8 // Servo 2 no protótipo
 #define servoLateral     7 // Servo 3 no protótipo
 
-// Funções para movimento suave
+// Funções para movimento suave e comunicacao
 void splitString(char* data);
 void setPosition(char* data);
 
 // Variáveis
-char buffer[18]; //vetor para armazenar string de texto
+char buffer[5]; //vetor para armazenar string de texto
 boolean run = false; //verifica constantemente se o comando de guarda foi recebido
+int Ans;   //recebe o valor inteiro do angulo recebido
+int increment = 10;  //delay padrao para suavização dos movimentos
+
+// variaveis para guardar a posição inicial dos servos
+int Pos = 0;  //variavel genérica
+int pos_garra = 70;
+int pos_base = 97;
+int pos_central = 150;
+int pos_lateral = 30;
 
 // Atribuição de objetos (servos do braço)
+Servo servo;  //variavel genérica
 Servo servo_base;
 Servo servo_garra;
 Servo servo_central;
 Servo servo_lateral;
 
-// Configuração inicial do MCU
 void setup() {
-  
+
   Serial.begin(9600);  //inicia comunicação serial a 9600bps
   Serial.flush();      //libera caracteres que estejam na linha
   //serial, deixando-a pronta para in/outs
@@ -60,12 +69,13 @@ void setup() {
   servo_central.attach(8);
   servo_lateral.attach(7);
 
- servo_garra.write(70);           // seta um posicionamento inicial para teste do braço
- servo_base.write(97);
- servo_central.write(150);
- servo_lateral.write(30);
+  servo_garra.write(pos_garra);           // seta um posicionamento inicial para teste do braço
+  servo_base.write(pos_base);
+  servo_central.write(pos_central);
+  servo_lateral.write(pos_lateral);
 
   delay(10000);
+
 }
 
 void loop() {
@@ -78,7 +88,7 @@ void loop() {
     int numChar = Serial.available(); //atribui o numero de
     //caracteres digitados
 
-    if (numChar > 15) numChar = 15; //evita o estouro do buffer
+    if (numChar > 5) numChar = 5; //evita o estouro do buffer
 
     while (numChar--) { //executa até que numChar seja zero
 
@@ -89,25 +99,20 @@ void loop() {
 
 }
 
-// Funções de Movimento de cada Servo
-
-void splitString(char* data){
-  Serial.println(" ");
-  Serial.print("                  Data entered: ");
+void splitString(char* data) {
   Serial.println(data);
-  Serial.println("....................................");
-  Serial.print(">> ");
+
   char* parameter; //variavel para acessar os elementos do vetor data
   parameter = strtok (data, " ,"); //divide a string quando encontrar um espaço ou uma
   //vírgula
 
-  while (parameter != NULL){ //executa enquanto parameter não estiver vazia
+  while (parameter != NULL) { //executa enquanto parameter não estiver vazia
     setPosition(parameter);
     parameter = strtok (NULL, " ,"); //preenche o vetor com caracteres NULL
   }
 
   //Limpa o texto e os buffers seriais
-  for (int x = 0; x < 16; x++){
+  for (int x = 0; x < 5; x++) {
     buffer[x] = '\0';
   }
 
@@ -116,143 +121,79 @@ void splitString(char* data){
 }
 
 // Funções de Movimento de cada Servo
+void selectServo(char comand) {
+  if ((comand == 'a') || (comand == 'A')) {
+    if (Pos != 0)
+      pos_garra = Pos;
+    else
+      Pos = pos_garra;
+
+    servo = servo_garra;
+    Ans = constrain(Ans, 70, 105); //garante que o valor digitado esteja entre 70 e 105
+  }
+  else if ((comand == 'b') || (comand == 'B')) {
+    if (Pos != 0)
+      pos_base = Pos;
+    else
+      Pos = pos_base;
+
+    servo = servo_base;
+    Ans = constrain(Ans, 35, 160); //garante que valor digitado esteja entre 35 e 160
+  }
+  else if ((comand == 'c') || (comand == 'C')) {
+    if (Pos != 0)
+      pos_central = Pos;
+    else
+      Pos = pos_central;
+
+    servo = servo_central;
+    Ans = constrain(Ans, 30, 160); //garante que valor digitado esteja entre 30 e 160
+  }
+  else if ((comand == 'd') || (comand == 'D')) {
+    if (Pos != 0)
+      pos_lateral = Pos;
+    else
+      Pos = pos_lateral;
+
+    servo = servo_lateral;
+    Ans = constrain(Ans, 30, 160); //garante que valor digitado esteja entre 30 e 160
+  }
+}
 
 void setPosition(char* data) {
   if (data[0] == '!') {
-    
+
     run = true;
-    
-    if ((data[1] == 'a') || (data[1] == 'A')) { //verifica letra inicial (qual servo irá receber os comandos de movimento)
+    Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
 
-      int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-      Ans = constrain(Ans, 70, 105); //garante que Ans esteja entre 0 e 45
+    selectServo(data[1]);
 
-      int Ans2 = 0;
+    if (Ans < Pos) {        //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
 
-      if (Ans < Ans2) {        //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
-
-        int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-        Ans = constrain(Ans, 70, 105); //garante que Ans esteja entre 0 e 45
-
-        for (int i = 0; Ans2 >= Ans; i--) {
-          servo_garra.write(i); //atribui o grau da posição do eixo do servo
-          delay(10);
-        }
-
-        Serial.print("A Garra esta na angulacao: ");
-        Serial.println(Ans);
+      for (int i = Pos; Pos >= Ans; i--) {
+        servo.write(i); //atribui o grau da posição do eixo do servo
+        delay(increment);
       }
 
-      for (int i = 0; i < Ans; i++) {
-        servo_garra.write(i); //atribui o grau da posição do eixo do servo
-        delay(10);
+      Serial.print("O servo esta na angulacao: ");
+      Serial.println(Ans);
+    }
+    else {
+
+      for (int i = Pos; i < Ans; i++) {
+        servo.write(i); //atribui o grau da posição do eixo do servo
+        delay(increment);
       }
 
-      Ans2 = Ans;
-
-      Serial.print("A Garra esta na angulacao: ");
+      Serial.print("O servo esta na angulacao: ");
       Serial.println(Ans);
     }
 
-    if ((data[1] == 'b') || (data[1] == 'B')) { //verifica letra inicial (qual servo irá receber os comandos de movimento)
-
-      int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-      Ans = constrain(Ans, 35, 160); //garante que Ans esteja entre 0 e 45
-
-      int Ans2 = 0;
-
-      if (Ans < Ans2) {   //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
-
-        int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-        Ans = constrain(Ans, 35, 160); //garante que Ans esteja entre 0 e 45
-
-        for (int i = 0; Ans2 >= Ans; i--) {
-          servo_base.write(i); //atribui o grau da posição do eixo do servo
-          delay(10);
-        }
-
-        Serial.print("A Base esta na angulacao: ");
-        Serial.println(Ans);
-      }
-
-      for (int i = 0; i < Ans; i++) {
-        servo_base.write(i); //atribui o grau da posição do eixo do servo
-        delay(10);
-      }
-
-      Ans2 = Ans;
-
-      Serial.print("A Base esta na angulacao: ");
-      Serial.println(Ans);
-    }
-
-    if ((data[1] == 'c') || (data[1] == 'C')) { //verifica letra inicial (qual servo irá receber os comandos de movimento)
-
-      int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-      Ans = constrain(Ans, 30, 160); //garante que Ans esteja entre 0 e 45
-
-      int Ans2 = 0;
-
-      if (Ans < Ans2) {   //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
-
-        int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-        Ans = constrain(Ans, 30, 160); //garante que Ans esteja entre 0 e 45
-
-        for (int i = 0; Ans2 >= Ans; i--) {
-          servo_central.write(i); //atribui o grau da posição do eixo do servo
-          delay(10);
-        }
-
-        Serial.print("O Servo central esta na angulacao: ");
-        Serial.println(Ans);
-      }
-
-      for (int i = 0; i < Ans; i++) {
-        servo_central.write(i); //atribui o grau da posição do eixo do servo
-        delay(10);
-      }
-
-      Ans2 = Ans;
-
-      Serial.print("O Servo central esta na angulacao: ");
-      Serial.println(Ans);
-    }
-
-    if ((data[1] == 'd') || (data[1] == 'D')) { //verifica letra inicial (qual servo irá receber os comandos de movimento)
-
-      int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-      Ans = constrain(Ans, 30, 160); //garante que Ans esteja entre 0 e 45
-
-      int Ans2 = 0;
-
-      if (Ans < Ans2) {   //condição que define a direção do movimento(Abre/Fecha, Sobe/Desce)
-
-        int Ans = strtol(data + 2, NULL, 10);   //define Ans como numero na proxima parte do texto
-        Ans = constrain(Ans, 30, 160); //garante que Ans esteja entre 0 e 45
-
-        for (int i = 0; Ans2 >= Ans; i--) {
-          servo_lateral.write(i); //atribui o grau da posição do eixo do servo
-          delay(10);
-        }
-
-        Serial.print("O Servo lateral esta na angulacao: ");
-        Serial.println(Ans);
-      }
-
-      for (int i = 0; i < Ans; i++) {
-        servo_lateral.write(i); //atribui o grau da posição do eixo do servo
-        delay(10);
-      }
-
-      Ans2 = Ans;
-
-      Serial.print("O Servo lateral esta na angulacao: ");
-      Serial.println(Ans);
-    }
+    Pos = Ans;
+    selectServo(data[1]);
   }
   else {
     run = false;
     Serial.print("Erro de comunicacao");
   }
-
 }
