@@ -75,7 +75,6 @@ void setup() {
   servo_lateral.write(pos_lateral);
 
   delay(10000);
-
 }
 
 void loop() {
